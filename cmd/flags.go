@@ -7,12 +7,12 @@ import (
 )
 
 func addFlags(cmd *cobra.Command, cfg *c.Config) {
-	// enable verbose output
-	cmd.Flags().BoolVar(&cfg.Verbose, "verbose", c.DefaultVerbose, "enable verbose output")
+	// Drone RPC address ...
+	cmd.Flags().StringVar(&cfg.DroneRPCAddress, "rpc-host", c.DefaultDroneRPCAddress, "drone rpc host")
 
-	// enable debug options
-	cmd.Flags().BoolVar(&cfg.Debug, "debug", c.DefaultDebug, "enable debug")
+	// Drone RPC address ....
+	cmd.Flags().StringVar(&cfg.DroneRPCSecret, "rpc-secret", c.DefaultDroneRPCAddress, "drone rpc secret")
 
-	// addr to connect to
-	cmd.Flags().StringVar(&cfg.Addr, "addr", c.DefaultAddr, "address of the Xcode server")
+	// Drone RPC capacity ....
+	cmd.Flags().IntVar(&cfg.DroneRPCCapacity, "rpc-capacity", c.DefaultDroneRPCCapacity, "drone rpc capcity")
 }

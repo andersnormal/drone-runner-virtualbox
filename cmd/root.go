@@ -18,8 +18,11 @@ var (
 // RootCmd represents the base command when called without any subcommands
 var RootCmd = &cobra.Command{
 	Use:   "drone-runner-virtualbox",
-	Short: "",
-	Long:  `Not yet`,
+	Short: "drone virtualbox runner",
+	Long: `
+    This starts a runner that controls VirtualBox on the machine.
+    It may clone or create a new virtual machine for the pipeline.
+  `,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	RunE: runE,
@@ -44,6 +47,9 @@ func init() {
 
 	// initialize cobra
 	cobra.OnInitialize(initConfig)
+
+	// adding flags
+	addFlags(RootCmd, cfg)
 }
 
 // initConfig reads in config file and ENV variables if set.
