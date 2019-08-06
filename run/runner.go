@@ -97,7 +97,10 @@ func (r *runner) Stop() error {
 
 func (r *runner) poll(ctx context.Context) func() error {
 	return func() error {
-		stage, err := r.client.Request(ctx, nil)
+		stage, err := r.client.Request(ctx, &client.Filter{
+			Kind: "pipeline",
+			Type: "virtualbox",
+		})
 		if err != nil {
 			return err
 		}
