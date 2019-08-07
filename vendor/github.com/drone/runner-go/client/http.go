@@ -315,6 +315,7 @@ func (p *HTTPClient) do(ctx context.Context, path, method string, in, out interf
 	if out == nil {
 		return res, nil
 	}
+
 	return res, json.Unmarshal(body, out)
 }
 

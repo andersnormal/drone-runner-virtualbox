@@ -105,7 +105,7 @@ func (r *runner) poll(ctx context.Context) func() error {
 			return err
 		}
 
-		fmt.Println(stage)
+		fmt.Println(stage.ID)
 
 		for {
 			select {

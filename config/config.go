@@ -88,13 +88,3 @@ func (cfg *Config) OS() string {
 func (cfg *Config) Arch() string {
 	return runtime.GOARCH
 }
-
-// if config.Runner.Name == "" {
-//   config.Runner.Name, _ = os.Hostname()
-// }
-// if config.Platform.OS == "" {
-//   config.Platform.OS = runtime.GOOS
-// }
-// if config.Platform.Arch == "" {
-//   config.Platform.Arch = runtime.GOARCH
-// }

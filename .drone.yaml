@@ -1,9 +1,10 @@
 ---
 kind: pipeline
-name: virtualbox
+type: virtualbox
+name: default
 
 platform:
-  os: linux
+  os: darwin
   arch: amd64
 
 steps:
