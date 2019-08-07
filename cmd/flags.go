@@ -14,5 +14,5 @@ func addFlags(cmd *cobra.Command, cfg *c.Config) {
 	cmd.Flags().StringVar(&cfg.DroneRPCSecret, "rpc-secret", c.DefaultDroneRPCAddress, "drone rpc secret")
 
 	// Drone RPC capacity ....
-	cmd.Flags().IntVar(&cfg.DroneRPCCapacity, "rpc-capacity", c.DefaultDroneRPCCapacity, "drone rpc capcity")
+	cmd.Flags().IntVar(&cfg.DroneRPCCapacity, "rpc-capacity", c.DefaultDroneRPCCapacity, "drone rpc capacity")
 }
