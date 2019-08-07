@@ -177,11 +177,34 @@ func (r *runner) staging(ctx context.Context, stage *drone.Stage) error {
 		return err
 	}
 
+	// get data
+	data, err := r.client.Detail(ctx, stage)
+	if err != nil {
+		log.WithError(err).Error("cannot get stage details")
+		return err
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	r.run(func() error {
+		done, err := r.client.Watch(ctx, data.Build.ID)
+		if err != nil {
+			return err
+		}
+
+		if done {
+			cancel()
+		}
+
+		return nil
+	})
+
 	// create new run
-	s := NewStage(stage, r.logger)
+	s := NewStage(stage, data, r.logger)
 
 	// run a stage
-	if err := s.Run(); err != nil {
+	if err := s.Run(ctx); err != nil {
 		return err
 	}
 
