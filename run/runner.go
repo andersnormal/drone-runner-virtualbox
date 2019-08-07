@@ -2,12 +2,13 @@ package run
 
 import (
 	"context"
-	"fmt"
 	"sync"
+	"time"
 
 	"github.com/andersnormal/drone-runner-virtualbox/config"
 
 	"github.com/andersnormal/pkg/server"
+	"github.com/drone/drone-go/drone"
 	"github.com/drone/runner-go/client"
 
 	// s "github.com/drone/runner-go/server"
@@ -26,6 +27,7 @@ type runner struct {
 	client *client.HTTPClient
 	logger *log.Entry
 
+	stage   chan *drone.Stage
 	exit    chan struct{}
 	errOnce sync.Once
 	err     error
@@ -49,6 +51,9 @@ func New(cfg *config.Config, client *client.HTTPClient, logger *log.Entry, opts 
 	r.opts = options
 	r.logger = logger
 	r.client = client
+
+	// configure channel
+	r.stage = make(chan *drone.Stage)
 
 	configure(r, opts...)
 
@@ -76,12 +81,17 @@ func (r *runner) Start(ctx context.Context, ready func()) func() error {
 		//     }),
 		//   }
 
+		// start
+
 		for i := 0; i < r.opts.Cap; i++ {
-			r.run(r.poll(ctx))
+			r.run(r.watch(ctx))
 		}
 
+		// call for being ready, and start the next service
+		time.Sleep(1 * time.Second)
 		ready()
 
+		// wait for the group
 		if err := r.wait(); err != nil {
 			return err
 		}
@@ -97,18 +107,41 @@ func (r *runner) Stop() error {
 
 func (r *runner) poll(ctx context.Context) func() error {
 	return func() error {
-		stage, err := r.client.Request(ctx, &client.Filter{
-			Kind: "pipeline",
-			Type: "virtualbox",
-		})
-		if err != nil {
-			return err
+		for {
+			// this is to direct the request to the runner
+			stage, err := r.client.Request(ctx, &client.Filter{
+				Kind: "pipeline",
+				Type: "virtualbox",
+			})
+			if err != nil {
+				return err
+			}
+
+			r.stage <- stage
 		}
+	}
+}
 
-		fmt.Println(stage.ID)
+func (r *runner) watch(ctx context.Context) func() error {
+	return func() error {
+		// start to poll
+		r.run(r.poll(ctx))
 
+		// looking for channel
 		for {
 			select {
+			case stage, ok := <-r.stage:
+				if !ok {
+					return nil
+				}
+
+				if stage == nil || stage.ID == 0 {
+					continue
+				}
+
+				// this is sync, running in its own loop
+				r.staging(ctx, stage)
+
 			case <-ctx.Done():
 				return nil
 			}
@@ -133,9 +166,26 @@ func (r *runner) poll(ctx context.Context) func() error {
 
 		// return p.Runner.Run(
 		// 	logger.WithContext(noContext, log), stage)
-
-		return nil
 	}
+}
+
+func (r *runner) staging(ctx context.Context, stage *drone.Stage) error {
+	stage.Machine = "test"
+	err := r.client.Accept(ctx, stage)
+	if err != nil {
+		log.WithError(err).Error("cannot accept stage")
+		return err
+	}
+
+	// create new run
+	s := NewStage(stage, r.logger)
+
+	// run a stage
+	if err := s.Run(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *runner) wait() error {

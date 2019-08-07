@@ -38,7 +38,7 @@ type Config struct {
 
 const (
 	// DefaultLogLevel is the default logging level.
-	DefaultLogLevel = log.WarnLevel
+	DefaultLogLevel = log.InfoLevel
 
 	// DefaultTermSignal is the signal to term the agent.
 	DefaultTermSignal = syscall.SIGTERM
