@@ -1,12 +1,50 @@
+# github.com/99designs/httpsignatures-go v0.0.0-20170731043157-88528bf4ca7e
+github.com/99designs/httpsignatures-go
 # github.com/andersnormal/pkg v0.0.0-20190521194814-d257d6a
 github.com/andersnormal/pkg/server
+# github.com/bmatcuk/doublestar v1.1.1
+github.com/bmatcuk/doublestar
+# github.com/buildkite/yaml v2.1.0+incompatible
+github.com/buildkite/yaml
+# github.com/coreos/go-semver v0.3.0
+github.com/coreos/go-semver/semver
+# github.com/dchest/uniuri v0.0.0-20160212164326-8902c56451e9
+github.com/dchest/uniuri
+# github.com/docker/go-units v0.4.0
+github.com/docker/go-units
+# github.com/drone-runners/drone-runner-exec v1.0.0-beta.2
+github.com/drone-runners/drone-runner-exec/engine
+github.com/drone-runners/drone-runner-exec/engine/compiler
+github.com/drone-runners/drone-runner-exec/engine/resource
 # github.com/drone/drone-go v1.0.5-0.20190504210458-4d6116b897ba
 github.com/drone/drone-go/drone
+github.com/drone/drone-go/plugin/secret
+github.com/drone/drone-go/plugin/internal/aesgcm
+github.com/drone/drone-go/plugin/internal/client
+github.com/drone/drone-go/plugin/logger
+# github.com/drone/envsubst v1.0.2
+github.com/drone/envsubst
+github.com/drone/envsubst/parse
+github.com/drone/envsubst/path
 # github.com/drone/runner-go v1.2.0
 github.com/drone/runner-go/client
 github.com/drone/runner-go/logger
+github.com/drone/runner-go/pipeline/history
+github.com/drone/runner-go/pipeline/remote
+github.com/drone/runner-go/secret
+github.com/drone/runner-go/pipeline
+github.com/drone/runner-go/environ
+github.com/drone/runner-go/manifest
+github.com/drone/runner-go/internal
+github.com/drone/runner-go/livelog
+github.com/drone/runner-go/clone
+github.com/drone/runner-go/shell
+github.com/drone/runner-go/shell/bash
+github.com/drone/runner-go/shell/powershell
 # github.com/fsnotify/fsnotify v1.4.7
 github.com/fsnotify/fsnotify
+# github.com/gosimple/slug v1.5.0
+github.com/gosimple/slug
 # github.com/hashicorp/hcl v1.0.0
 github.com/hashicorp/hcl
 github.com/hashicorp/hcl/hcl/printer
@@ -28,6 +66,8 @@ github.com/magiconair/properties
 github.com/mitchellh/mapstructure
 # github.com/pelletier/go-toml v1.2.0
 github.com/pelletier/go-toml
+# github.com/rainycape/unidecode v0.0.0-20150907023854-cb7f23ec59be
+github.com/rainycape/unidecode
 # github.com/sirupsen/logrus v1.4.2
 github.com/sirupsen/logrus
 # github.com/spf13/afero v1.1.2

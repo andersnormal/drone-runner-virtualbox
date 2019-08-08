@@ -1,4 +1,4 @@
-package run
+package poller
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/andersnormal/drone-runner-virtualbox/config"
+	"github.com/andersnormal/drone-runner-virtualbox/runner"
 
 	"github.com/andersnormal/pkg/server"
 	"github.com/drone/drone-go/drone"
@@ -15,17 +16,19 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// Runner ...
-type Runner interface {
+// Poller ...
+type Poller interface {
 	server.Listener
 }
 
-type runner struct {
+type poller struct {
 	opts *Opts
 	cfg  *config.Config
 
 	client *client.HTTPClient
 	logger *log.Entry
+
+	runner runner.Runner
 
 	stage   chan *drone.Stage
 	exit    chan struct{}
@@ -43,25 +46,26 @@ type Opts struct {
 }
 
 // New ...
-func New(cfg *config.Config, client *client.HTTPClient, logger *log.Entry, opts ...Opt) Runner {
+func New(cfg *config.Config, runner runner.Runner, client *client.HTTPClient, logger *log.Entry, opts ...Opt) Poller {
 	options := new(Opts)
 
-	r := new(runner)
-	r.cfg = cfg
-	r.opts = options
-	r.logger = logger
-	r.client = client
+	p := new(poller)
+	p.cfg = cfg
+	p.opts = options
+	p.logger = logger
+	p.client = client
+	p.runner = runner
 
 	// configure channel
-	r.stage = make(chan *drone.Stage)
+	p.stage = make(chan *drone.Stage)
 
-	configure(r, opts...)
+	configure(p, opts...)
 
-	return r
+	return p
 }
 
 // Start ...
-func (r *runner) Start(ctx context.Context, ready func()) func() error {
+func (p *poller) Start(ctx context.Context, ready func()) func() error {
 	return func() error {
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
@@ -83,8 +87,8 @@ func (r *runner) Start(ctx context.Context, ready func()) func() error {
 
 		// start
 
-		for i := 0; i < r.opts.Cap; i++ {
-			r.run(r.watch(ctx))
+		for i := 0; i < p.opts.Cap; i++ {
+			p.run(p.watch(ctx))
 		}
 
 		// call for being ready, and start the next service
@@ -92,7 +96,7 @@ func (r *runner) Start(ctx context.Context, ready func()) func() error {
 		ready()
 
 		// wait for the group
-		if err := r.wait(); err != nil {
+		if err := p.wait(); err != nil {
 			return err
 		}
 
@@ -101,15 +105,15 @@ func (r *runner) Start(ctx context.Context, ready func()) func() error {
 }
 
 // Stop is stopping the queue
-func (r *runner) Stop() error {
+func (p *poller) Stop() error {
 	return nil
 }
 
-func (r *runner) poll(ctx context.Context) func() error {
+func (p *poller) poll(ctx context.Context) func() error {
 	return func() error {
 		for {
 			// this is to direct the request to the runner
-			stage, err := r.client.Request(ctx, &client.Filter{
+			stage, err := p.client.Request(ctx, &client.Filter{
 				Kind: "pipeline",
 				Type: "virtualbox",
 			})
@@ -117,20 +121,20 @@ func (r *runner) poll(ctx context.Context) func() error {
 				return err
 			}
 
-			r.stage <- stage
+			p.stage <- stage
 		}
 	}
 }
 
-func (r *runner) watch(ctx context.Context) func() error {
+func (p *poller) watch(ctx context.Context) func() error {
 	return func() error {
 		// start to poll
-		r.run(r.poll(ctx))
+		p.run(p.poll(ctx))
 
 		// looking for channel
 		for {
 			select {
-			case stage, ok := <-r.stage:
+			case stage, ok := <-p.stage:
 				if !ok {
 					return nil
 				}
@@ -140,7 +144,7 @@ func (r *runner) watch(ctx context.Context) func() error {
 				}
 
 				// this is sync, running in its own loop
-				r.staging(ctx, stage)
+				p.staging(ctx, stage)
 
 			case <-ctx.Done():
 				return nil
@@ -169,26 +173,28 @@ func (r *runner) watch(ctx context.Context) func() error {
 	}
 }
 
-func (r *runner) staging(ctx context.Context, stage *drone.Stage) error {
+func (p *poller) staging(ctx context.Context, stage *drone.Stage) error {
 	stage.Machine = "test"
-	err := r.client.Accept(ctx, stage)
+
+	err := p.client.Accept(ctx, stage)
 	if err != nil {
 		log.WithError(err).Error("cannot accept stage")
 		return err
 	}
 
 	// get data
-	data, err := r.client.Detail(ctx, stage)
+	data, err := p.client.Detail(ctx, stage)
 	if err != nil {
 		log.WithError(err).Error("cannot get stage details")
+
 		return err
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	r.run(func() error {
-		done, err := r.client.Watch(ctx, data.Build.ID)
+	p.run(func() error {
+		done, err := p.client.Watch(ctx, data.Build.ID)
 		if err != nil {
 			return err
 		}
@@ -201,43 +207,46 @@ func (r *runner) staging(ctx context.Context, stage *drone.Stage) error {
 	})
 
 	// create new run
-	s := NewStage(stage, data, r.logger)
+	s, err := p.runner.Run(ctx, stage, data)
+	if err != nil {
+		return err
+	}
 
-	// run a stage
-	if err := s.Run(ctx); err != nil {
+	// update the the stage on the server
+	if err := p.client.Update(ctx, s); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r *runner) wait() error {
-	r.wg.Wait()
+func (p *poller) wait() error {
+	p.wg.Wait()
 
-	return r.err
+	return p.err
 }
 
-func (r *runner) run(f func() error) {
-	r.wg.Add(1)
+func (p *poller) run(f func() error) {
+	p.wg.Add(1)
 
 	go func() {
-		defer r.wg.Done()
+		defer p.wg.Done()
 
 		if err := f(); err != nil {
-			r.errOnce.Do(func() {
-				r.err = err
+			p.errOnce.Do(func() {
+				p.err = err
 			})
 		}
 	}()
 }
 
-func configure(r *runner, opts ...Opt) error {
+func configure(p *poller, opts ...Opt) error {
 	for _, o := range opts {
-		o(r.opts)
+		o(p.opts)
 	}
 
-	if r.opts.Cap == 0 {
-		r.opts.Cap = 1
+	if p.opts.Cap == 0 {
+		p.opts.Cap = 1
 	}
 
 	return nil
