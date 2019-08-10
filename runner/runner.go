@@ -123,6 +123,8 @@ func (r *runner) Run(ctx context.Context, stage *drone.Stage, details *client.Co
 		return nil, r.reporter.ReportStage(ctx, state)
 	}
 
+	fmt.Println(config)
+
 	// parse the yaml configuration file.
 	manifest, err := manifest.ParseString(config)
 	if err != nil {
@@ -131,7 +133,7 @@ func (r *runner) Run(ctx context.Context, stage *drone.Stage, details *client.Co
 		return nil, r.reporter.ReportStage(ctx, state)
 	}
 
-	fmt.Println(stage.Name, manifest, config)
+	fmt.Println(manifest)
 
 	// find the named stage in the yaml configuration file.
 	resource, err := resource.Lookup(stage.Name, manifest)
