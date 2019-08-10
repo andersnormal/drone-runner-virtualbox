@@ -1,0 +1,17 @@
+---
+kind: pipeline
+type: virtualbox
+name: default
+
+platform:
+  os: darwin
+  arch: amd64
+
+steps:
+- name: test
+  image: golang:1.11
+  commands:
+  - go test -v ./...
+  volumes:
+  - name: gopath
+    path: /go
