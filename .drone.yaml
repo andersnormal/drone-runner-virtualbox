@@ -1,7 +1,6 @@
 ---
 kind: pipeline
 type: virtualbox
-name: default
 
 platform:
   os: darwin

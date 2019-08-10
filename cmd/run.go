@@ -3,12 +3,13 @@ package cmd
 import (
 	"context"
 
-	"github.com/andersnormal/drone-runner-virtualbox/executer"
+	"github.com/andersnormal/drone-runner-virtualbox/engine"
+	"github.com/andersnormal/drone-runner-virtualbox/match"
 	"github.com/andersnormal/drone-runner-virtualbox/poller"
-  "github.com/andersnormal/drone-runner-virtualbox/runner"
-  "github.com/andersnormal/drone-runner-virtualbox/match"
+	"github.com/andersnormal/drone-runner-virtualbox/runner"
 
 	"github.com/andersnormal/pkg/server"
+	"github.com/drone-runners/drone-runner-exec/runtime"
 	"github.com/drone/runner-go/client"
 	"github.com/drone/runner-go/logger"
 	"github.com/drone/runner-go/pipeline/history"
@@ -67,13 +68,18 @@ func runE(cmd *cobra.Command, args []string) error {
 	env := map[string]string{}
 
 	// create executer ...
-	exec := executer.New()
+	// exec := executer.New(c)
 
 	// create a new runner
-	// engine := engine.New()
+	e := engine.New()
 	remote := remote.New(c)
 	reporter := history.New(remote)
-	r := runner.New(reporter, exec, env, sec, m, root.logger)
+
+	// create new executer ...
+	exec := runtime.NewExecer(reporter, remote, e, cfg.Runner.Procs)
+
+	// create runner
+	r := runner.New(c, reporter, exec, env, sec, m, root.logger)
 
 	// create new poller
 	p := poller.New(cfg, r, c, root.logger)

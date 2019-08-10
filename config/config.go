@@ -9,6 +9,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// Runner ...
+type Runner struct {
+	Procs int64
+}
+
 // Config contains a configuration for drone-runner-virtualbox
 type Config struct {
 	// LogLevel is the level with with to log for this config
@@ -34,6 +39,9 @@ type Config struct {
 
 	// DroneRPCCapacity ...
 	DroneRPCCapacity int
+
+	// Runner ...
+	Runner Runner
 }
 
 const (
@@ -69,6 +77,7 @@ func New() *Config {
 		DroneRPCAddress:  DefaultDroneRPCAddress,
 		DroneRPCSecret:   DefaultDroneRPCSecret,
 		DroneRPCCapacity: DefaultDroneRPCCapacity,
+		Runner:           Runner{},
 	}
 }
 

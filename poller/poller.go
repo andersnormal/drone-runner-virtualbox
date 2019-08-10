@@ -2,6 +2,7 @@ package poller
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -121,6 +122,8 @@ func (p *poller) poll(ctx context.Context) func() error {
 				return err
 			}
 
+			fmt.Println(stage)
+
 			p.stage <- stage
 		}
 	}
@@ -208,7 +211,7 @@ func (p *poller) staging(ctx context.Context, stage *drone.Stage) error {
 
 	// create new run
 	s, err := p.runner.Run(ctx, stage, data)
-	if err != nil {
+	if err != nil || s == nil {
 		return err
 	}
 
