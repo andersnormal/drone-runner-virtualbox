@@ -1,61 +1,35 @@
+// Copyright 2019 Drone.IO Inc. All rights reserved.
+// Use of this source code is governed by the Polyform License
+// that can be found in the LICENSE file.
+
 package engine
 
 import (
 	"context"
-	"fmt"
 	"io"
-
-	e "github.com/drone-runners/drone-runner-exec/engine"
 )
 
-type engine struct {
-}
+// Engine is the interface that must be implemented by a
+// pipeline execution engine.
+type Engine interface {
+	// Setup the pipeline environment.
+	Setup(context.Context, *Spec) error
 
-func New() e.Engine {
-	ee := new(engine)
+	// Run runs the pipeine step.
+	Run(context.Context, *Spec, *Step, io.Writer) (*State, error)
 
-	return ee
-}
+	// Create creates the pipeline state.
+	Create(context.Context, *Spec, *Step) error
 
-// Setup the pipeline environment.
-func (ee *engine) Setup(ctx context.Context, spec *e.Spec) error {
-	fmt.Println("setup")
+	// Start the pipeline step.
+	Start(context.Context, *Spec, *Step) error
 
-	return nil
-}
+	// Wait for the pipeline step to complete and returns the completion results.
+	Wait(context.Context, *Spec, *Step) (*State, error)
 
-// Run runs the pipeine step.
-func (ee *engine) Run(ctx context.Context, spec *e.Spec, step *e.Step, w io.Writer) (*e.State, error) {
-	state := &e.State{
-		ExitCode:  0,
-		Exited:    true,
-		OOMKilled: false,
-	}
+	// Tail the pipeline step logs.
+	Tail(context.Context, *Spec, *Step) (io.ReadCloser, error)
 
-	return state, nil
-}
-
-// Create creates the pipeline state.
-func (ee *engine) Create(ctx context.Context, spec *e.Spec, step *e.Step) error {
-	return nil
-}
-
-// Start the pipeline step.
-func (ee *engine) Start(ctx context.Context, spec *e.Spec, step *e.Step) error {
-	return nil
-}
-
-// Wait for the pipeline step to complete and returns the completion results.
-func (ee *engine) Wait(ctx context.Context, spec *e.Spec, step *e.Step) (*e.State, error) {
-	return nil, nil
-}
-
-// Tail the pipeline step logs.
-func (ee *engine) Tail(ctx context.Context, spec *e.Spec, step *e.Step) (io.ReadCloser, error) {
-	return nil, nil
-}
-
-// Destroy the pipeline environment.
-func (ee *engine) Destroy(ctx context.Context, spec *e.Spec) error {
-	return nil
+	// Destroy the pipeline environment.
+	Destroy(context.Context, *Spec) error
 }

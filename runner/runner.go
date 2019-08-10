@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/drone-runners/drone-runner-exec/engine"
-	"github.com/drone-runners/drone-runner-exec/engine/compiler"
-	"github.com/drone-runners/drone-runner-exec/engine/resource"
-	"github.com/drone-runners/drone-runner-exec/runtime"
+	"github.com/andersnormal/drone-runner-virtualbox/engine/compiler"
+	"github.com/andersnormal/drone-runner-virtualbox/engine/resource"
+	"github.com/andersnormal/drone-runner-virtualbox/engine"
+	"github.com/andersnormal/drone-runner-virtualbox/runtime"
 
 	"github.com/drone/drone-go/drone"
 	"github.com/drone/envsubst"
@@ -123,8 +123,6 @@ func (r *runner) Run(ctx context.Context, stage *drone.Stage, details *client.Co
 		return nil, r.reporter.ReportStage(ctx, state)
 	}
 
-	fmt.Println(config)
-
 	// parse the yaml configuration file.
 	manifest, err := manifest.ParseString(config)
 	if err != nil {
@@ -132,8 +130,6 @@ func (r *runner) Run(ctx context.Context, stage *drone.Stage, details *client.Co
 
 		return nil, r.reporter.ReportStage(ctx, state)
 	}
-
-	fmt.Println(manifest)
 
 	// find the named stage in the yaml configuration file.
 	resource, err := resource.Lookup(stage.Name, manifest)

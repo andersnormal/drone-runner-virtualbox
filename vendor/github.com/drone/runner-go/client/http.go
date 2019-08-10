@@ -266,7 +266,6 @@ func (p *HTTPClient) do(ctx context.Context, path, method string, in, out interf
 	}
 
 	res, err := p.client().Do(req)
-	fmt.Println(res, err)
 	if res != nil {
 		defer res.Body.Close()
 	}
@@ -316,7 +315,6 @@ func (p *HTTPClient) do(ctx context.Context, path, method string, in, out interf
 	if out == nil {
 		return res, nil
 	}
-
 	return res, json.Unmarshal(body, out)
 }
 

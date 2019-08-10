@@ -6,10 +6,10 @@ import (
 	"github.com/andersnormal/drone-runner-virtualbox/engine"
 	"github.com/andersnormal/drone-runner-virtualbox/match"
 	"github.com/andersnormal/drone-runner-virtualbox/poller"
-	"github.com/andersnormal/drone-runner-virtualbox/runner"
+  "github.com/andersnormal/drone-runner-virtualbox/runner"
+  "github.com/andersnormal/drone-runner-virtualbox/runtime"
 
 	"github.com/andersnormal/pkg/server"
-	"github.com/drone-runners/drone-runner-exec/runtime"
 	"github.com/drone/runner-go/client"
 	"github.com/drone/runner-go/logger"
 	"github.com/drone/runner-go/pipeline/history"
